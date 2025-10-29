@@ -1,2 +1,25 @@
+# Binaries for programs
+*.exe
+*.dll
+*.so
+*.dylib
 
+# Test binaries
+*.test
+
+# Output of coverage tools
+*.out
+
+# Go module cache
+# This can be useful if you're not using Go modules or if you want to explicitly exclude it,
+# but usually, the Go tooling handles this effectively.
+# vendor/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*~
+
+# Goreleaser output
 dist/

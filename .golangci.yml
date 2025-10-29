@@ -1,0 +1,21 @@
+version: "2"
+linters:
+  default: fast
+  disable:
+    - wsl
+  settings:
+    depguard:
+      rules:
+        main:
+          allow:
+            - $gostd
+            - github.com/rancher-sandbox/scc-product-version-verifier
+            - github.com/sirupsen/logrus
+            - github.com/spf13/cobra
+            - github.com/spf13/viper
+  exclusions:
+    rules:
+      - path: cmd
+        linters:
+          - gochecknoinits
+          - lll
