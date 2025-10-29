@@ -13,7 +13,10 @@ import (
 
 const (
 	TenSecondDuration = 10 * time.Second
-	ProductQueryUrl   = "https://scc.suse.com/connect/subscriptions/products"
+)
+
+var (
+	ProductQueryUrl = "https://scc.suse.com/connect/subscriptions/products"
 )
 
 func prepareClient() *http.Client {
