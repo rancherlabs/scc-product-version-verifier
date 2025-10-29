@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// versionCmd represents the version command
+// versionCmd represents the version command.
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number of scc-product-version-verifier",
@@ -21,5 +21,8 @@ func init() {
 }
 
 func printVersion() {
-	fmt.Printf("`scc-product-version-verifier` - version: %s, commit: %s, built at: %s\n", version.Version, version.GitCommit, version.Date)
+	fmt.Printf(
+		"`scc-product-version-verifier` - version: %s, commit: %s, built at: %s\n",
+		version.Version, version.GitCommit, version.Date,
+	)
 }

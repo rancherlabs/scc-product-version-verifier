@@ -11,17 +11,22 @@ import (
 
 var RegCode = ""
 
-// curlCmd represents the curl command
+const (
+	minRequiredFlags = 2
+	optionalFlags    = 3
+)
+
+// curlCmd represents the curl command.
 var curlCmd = &cobra.Command{
 	Use:   "curl-verify [product name] [product version] [product arch : optional]",
 	Short: "Mimics using curl to check if SCC product exists",
-	Args:  cobra.RangeArgs(2, 3),
+	Args:  cobra.RangeArgs(minRequiredFlags, optionalFlags),
 	Run: func(cmd *cobra.Command, args []string) {
 		productName := args[0]
 		productVersion := args[1]
 		// Force arch to be optional with default to Rancher value
 		productArch := "unknown"
-		if len(args) == 3 {
+		if len(args) == optionalFlags {
 			productArch = args[2]
 		}
 
