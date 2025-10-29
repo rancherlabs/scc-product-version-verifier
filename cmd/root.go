@@ -64,6 +64,7 @@ func initConfig() {
 		viper.SetConfigName(".scc-product-version-verifier")
 	}
 
+	viper.SetEnvPrefix("scc")
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.

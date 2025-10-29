@@ -36,29 +36,28 @@ scc-product-version-verifier curl-verify [product name] [product version] [produ
 
 **Flags:**
 
-*   `-R`, `--reg-code`: The SCC Registration Code used to authenticate for the API call.
+*   `-R`, `--regcode`: The SCC Registration Code used to authenticate for the API call. Can also be set via the `SCC_REGCODE` environment variable.
 
 **Example:**
 
 ```bash
-scc-product-version-verifier curl-verify "sles" "15" "x86_64" -R "your-registration-code"
+scc-product-version-verifier curl-verify "SLES" "15" "x86_64" -R "your-registration-code"
 ```
 
-### `version`
-
-Prints the version information of the CLI tool.
-
-**Usage:**
+You can also use the `SCC_REGCODE` environment variable (better for CI):
+```bash
+export SCC_REGCODE="your-registration-code"
+scc-product-version-verifier curl-verify "SLES" "15" "x86_64"
+```
 
 ```bash
-scc-product-version-verifier --version
+export SCC_REGCODE="your-registration-code"
+scc-product-version-verifier curl-verify rancher 2.12.3
 ```
 
-or
-
-```bash
-scc-product-version-verifier -V
-```
+> [!WARNING]
+> The SCC api is case-sensitive for product lookup meaning `SLES` != `sles`.
+> For SLES look up it must be upper case, for `rancher` lookup it must be lower case.
 
 ## Contributing
 

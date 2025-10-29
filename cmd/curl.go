@@ -6,6 +6,7 @@ import (
 	"github.com/rancher-sandbox/scc-product-version-verifier/internal/curler"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var RegCode = ""
@@ -24,19 +25,22 @@ var curlCmd = &cobra.Command{
 			productArch = args[2]
 		}
 
+		regCode := viper.GetString("regcode")
+
 		logrus.Infof("Verifying product: %s, version: %s, arch: %s", productName, productVersion, productArch)
 		logrus.Infof("using product triplet: %s/%s/%s", productName, productVersion, productArch)
 
-		logrus.Infof("Using RegCode: %s", RegCode)
+		logrus.Infof("Using RegCode: %s", regCode)
 
-		if err := curler.CurlVerify(productName, productVersion, productArch, RegCode); err != nil {
+		if err := curler.CurlVerify(productName, productVersion, productArch, regCode); err != nil {
 			log.Fatalf("Error verifying product: %v", err)
 		}
 	},
 }
 
 func init() {
-	curlCmd.Flags().StringVarP(&RegCode, "reg-code", "R", "", "The SCC Registration Code used to auth for the API call")
+	curlCmd.Flags().StringP("regcode", "R", "", "The SCC Registration Code used to auth for the API call. Can also be set with the SCC_REGCODE environment variable.")
+	viper.BindPFlag("regcode", curlCmd.Flags().Lookup("regcode"))
 
 	rootCmd.AddCommand(curlCmd)
 }
