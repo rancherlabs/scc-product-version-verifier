@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/rancher-sandbox/scc-product-version-verifier/internal/curler"
@@ -32,10 +33,16 @@ var curlCmd = &cobra.Command{
 
 		regCode := viper.GetString("regcode")
 
-		logrus.Infof("Verifying product: %s, version: %s, arch: %s", productName, productVersion, productArch)
-		logrus.Infof("using product triplet: %s/%s/%s", productName, productVersion, productArch)
+		logrus.WithFields(map[string]interface{}{
+			"product_name":    productName,
+			"product_version": productVersion,
+			"product_arch":    productArch,
+		}).Infof("Checking SCC for product info")
+		logrus.WithFields(map[string]interface{}{
+			"product_triplet": fmt.Sprintf("%s/%s/%s", productName, productVersion, productArch),
+		}).Infof("Using product triplet to check SCC backend")
 
-		logrus.Infof("Using RegCode: %s", regCode)
+		logrus.WithField("reg_code", regCode).Trace("Authenticating to SCC API")
 
 		if err := curler.CurlVerify(productName, productVersion, productArch, regCode); err != nil {
 			log.Fatalf("Error verifying product: %v", err)
