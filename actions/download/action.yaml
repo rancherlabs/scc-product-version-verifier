@@ -1,0 +1,92 @@
+name: 'Setup SCC Product Version Verifier'
+description: 'Downloads and prepares the SCC product version verifier CLI tool (Linux only)'
+branding:
+  icon: 'check-circle'
+  color: 'green'
+
+inputs:
+  version:
+    description: 'Release version to download (e.g., v1.2.3 or "latest")'
+    required: false
+    default: 'latest'
+  token:
+    description: 'GitHub token for API access'
+    required: false
+    default: ${{ github.token }}
+  output-dir:
+    description: 'Directory to extract downloaded files to'
+    required: false
+    default: './bin'
+
+outputs:
+  version:
+    description: 'The release tag that was downloaded'
+    value: ${{ steps.release.outputs.tag }}
+  bin-path:
+    description: 'Path where binaries were extracted'
+    value: ${{ inputs.output-dir }}
+  asset-name:
+    description: 'Name of the downloaded asset'
+    value: ${{ steps.download.outputs.asset-name }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Verify Linux
+      shell: bash
+      run: |
+        if [ "${{ runner.os }}" != "Linux" ]; then
+          echo "::error::This action only supports Linux runners"
+          exit 1
+        fi
+
+    - name: Get release information
+      id: release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: "rancherlabs/scc-product-version-verifier"
+      run: |
+        TAG="${{ inputs.version }}"
+        if [ "$TAG" == "latest" ] || [ -z "$TAG" ]; then
+          TAG=$(gh release view --repo "$REPO" --json tagName -q .tagName)
+        fi
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+    - name: Download and Extract
+      id: download
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: "rancherlabs/scc-product-version-verifier"
+        BINARY_NAME: "scc-product-version-verifier"
+      run: |
+        ARCH="${{ runner.arch == 'X64' && 'x86_64' || 'arm64' }}"
+        TAG="${{ steps.release.outputs.tag }}"
+        OUT="${{ inputs.output-dir }}"
+        
+        mkdir -p "$OUT"
+        
+        # 1. Download the archive
+        gh release download "$TAG" \
+          --repo "$REPO" \
+          --pattern "*Linux*${ARCH}*.tar.gz" \
+          --dir "$OUT" \
+          --clobber
+  
+        # 2. Extract and identify the archive name for cleanup
+        ARCHIVE=$(ls "$OUT" | grep ".tar.gz")
+        tar -xzf "$OUT/$ARCHIVE" -C "$OUT"
+        rm "$OUT/$ARCHIVE"
+        
+        # 3. Ensure permissions
+        chmod +x "$OUT/$BINARY_NAME"
+        
+        # 4. Set Outputs
+        echo "asset-name=$BINARY_NAME" >> $GITHUB_OUTPUT
+        echo "bin-path=$OUT/$BINARY_NAME" >> $GITHUB_OUTPUT
+        
+        # 5. Add to PATH for immediate use
+        echo "$(realpath "$OUT")" >> $GITHUB_PATH
+        
+        echo "✓ $BINARY_NAME is ready at $OUT/$BINARY_NAME"

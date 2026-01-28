@@ -59,6 +59,75 @@ scc-product-version-verifier curl-verify rancher 2.12.3
 > The SCC api is case-sensitive for product lookup meaning `SLES` != `sles`.
 > For SLES look up it must be upper case, for `rancher` lookup it must be lower case.
 
-## Contributing
+## GitHub Actions
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+This repository provides reusable GitHub Actions to download and use the verifier in your CI/CD workflows.
+
+### Download Action
+
+Downloads and installs the latest version of `scc-product-version-verifier`.
+
+**Location:** `rancherlabs/scc-product-version-verifier/actions/download`
+
+**Requirements:**
+- Works on Linux runners
+- No sudo required (uses GitHub Actions provided gh cli)
+
+**Outputs:**
+- `version`: The installed version of the verifier
+- `bin-path`: Installation path of the verifier
+- `asset-name`: Name of the downloaded tool
+
+**Example:**
+
+```yaml
+- name: Setup SCC Product Version Verifier
+  uses: rancherlabs/scc-product-version-verifier/actions/download@main
+```
+
+### Verify Action
+
+Verifies a product version against SCC staging and/or production environments.
+
+**Location:** `rancherlabs/scc-product-version-verifier/actions/verify`
+
+**Requirements:**
+- `scc-product-version-verifier` must be installed (use the download action first)
+- Valid SCC registration code(s)
+
+**Inputs:**
+- `version` (required): Version to verify (will be sanitized to remove `v` prefix and prerelease suffixes)
+- `staging-code` (required): SCC staging registration code
+- `production-code` (required): SCC production registration code
+- `product-name` (required): Product name to verify (case-sensitive)
+- `skip-staging` (optional, default: `false`): Skip staging verification
+- `skip-production` (optional, default: `false`): Skip production verification
+- `fail-on-error` (optional, default: `false`): Fail the workflow if verification fails
+
+**Outputs:**
+- `staging-result`: Staging verification result (`passed`/`failed`/`skipped`)
+- `production-result`: Production verification result (`passed`/`failed`/`skipped`)
+
+**Example:**
+
+```yaml
+- name: Setup Verifier
+  uses: rancherlabs/scc-product-version-verifier/actions/download@main
+
+- run: echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
+
+- name: Verify Product Version
+  uses: rancherlabs/scc-product-version-verifier/actions/verify@main
+  with:
+    version: v2.12.3
+    staging-code: ${{ secrets.SCC_STAGING_CODE }}
+    production-code: ${{ secrets.SCC_PRODUCTION_CODE }}
+    product-name: rancher
+    fail-on-error: false
+```
+
+**Notes:**
+- By default, verification failures do NOT fail the workflow (`fail-on-error: false`). Set to `true` to enforce strict verification.
+- Version strings are automatically sanitized (e.g., `v2.12.3-rc1` becomes `2.12.3`)
+- Product names are case-sensitive (e.g., `SLES` vs `sles`, `rancher` vs `Rancher`)
+- Results are written to the GitHub Actions step summary for easy viewing
