@@ -16,7 +16,8 @@ const (
 )
 
 var (
-	ProductQueryUrl = "https://scc.suse.com/connect/subscriptions/products"
+	ProductQueryUrl        = "https://scc.suse.com/connect/subscriptions/products"
+	ProductQueryUrlStaging = "https://stgscc.suse.com/connect/subscriptions/products"
 )
 
 func prepareClient() *http.Client {
@@ -37,8 +38,16 @@ func prepareClient() *http.Client {
 }
 
 func CurlVerify(name, version, arch, regCode string) error {
+	return curlVerify(ProductQueryUrl, name, version, arch, regCode)
+}
+
+func CurlVerifyStaging(name, version, arch, regCode string) error {
+	return curlVerify(ProductQueryUrlStaging, name, version, arch, regCode)
+}
+
+func curlVerify(apiURL, name, version, arch, regCode string) error {
 	queryParams := fmt.Sprintf("?identifier=%s&version=%s&arch=%s", name, version, arch)
-	fullURLWithQuery := ProductQueryUrl + queryParams
+	fullURLWithQuery := apiURL + queryParams
 	logrus.WithField("query_url", fullURLWithQuery).Info("Prepared URL to query SCC API for product info")
 
 	// 1. Create the Client with the custom transport

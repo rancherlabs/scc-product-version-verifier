@@ -10,8 +10,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var RegCode = ""
-
 const (
 	minRequiredFlags = 2
 	optionalFlags    = 3
@@ -32,6 +30,8 @@ var curlCmd = &cobra.Command{
 		}
 
 		regCode := viper.GetString("regcode")
+		useStaging := viper.GetBool("staging")
+		logrus.Infof("use staging set to: %v", useStaging)
 
 		logrus.WithFields(map[string]interface{}{
 			"product_name":    productName,
@@ -44,13 +44,21 @@ var curlCmd = &cobra.Command{
 
 		logrus.WithField("reg_code", regCode).Trace("Authenticating to SCC API")
 
-		if err := curler.CurlVerify(productName, productVersion, productArch, regCode); err != nil {
-			log.Fatalf("Error verifying product: %v", err)
+		if useStaging {
+			if err := curler.CurlVerifyStaging(productName, productVersion, productArch, regCode); err != nil {
+				log.Fatalf("Error verifying product: %v", err)
+			}
+		} else {
+			if err := curler.CurlVerify(productName, productVersion, productArch, regCode); err != nil {
+				log.Fatalf("Error verifying product: %v", err)
+			}
 		}
 	},
 }
 
 func init() {
+	curlCmd.Flags().BoolP("staging", "S", false, "Use the SCC Staging API instead of Production")
+	viper.BindPFlag("staging", curlCmd.Flags().Lookup("staging"))
 	curlCmd.Flags().StringP("regcode", "R", "", "The SCC Registration Code used to auth for the API call. Can also be set with the SCC_REGCODE environment variable.")
 	viper.BindPFlag("regcode", curlCmd.Flags().Lookup("regcode"))
 
