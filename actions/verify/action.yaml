@@ -88,7 +88,7 @@ runs:
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "Running staging verification for ${{ inputs.product-name }}..."
-        if scc-product-version-verifier curl-verify ${{ inputs.product-name }} ${{ steps.sanitize.outputs.sanitized_version }} -S; then
+        if scc-product-version-verifier verify ${{ inputs.product-name }} ${{ steps.sanitize.outputs.sanitized_version }} -S; then
           echo "✅ **Result:** Verification PASSED" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "result=passed" >> $GITHUB_OUTPUT
@@ -121,7 +121,7 @@ runs:
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "Running production verification for ${{ inputs.product-name }}..."
-        if scc-product-version-verifier curl-verify ${{ inputs.product-name }} ${{ steps.sanitize.outputs.sanitized_version }}; then
+        if scc-product-version-verifier verify ${{ inputs.product-name }} ${{ steps.sanitize.outputs.sanitized_version }}; then
           echo "✅ **Result:** Verification PASSED" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "result=passed" >> $GITHUB_OUTPUT
