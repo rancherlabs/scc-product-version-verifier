@@ -1,0 +1,58 @@
+name: Manual SCC Product Version Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      product-name:
+        description: 'Product name to verify'
+        required: true
+        type: string
+      version:
+        description: 'Version to verify (e.g., v1.2.3 or 1.2.3-rc1)'
+        required: true
+        type: string
+      staging-code:
+        description: 'SCC staging registration code (optional - if not provided, staging verification is skipped)'
+        required: false
+        default: ''
+      production-code:
+        description: 'SCC production registration code (optional - if not provided, production verification is skipped)'
+        required: false
+        default: ''
+      fail-on-error:
+        description: 'Fail the workflow if verification fails'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mask sensitive registration codes
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.staging-code }}" ]; then
+          echo "::add-mask::${{ inputs.staging-code }}"
+          fi
+          if [ -n "${{ inputs.production-code }}" ]; then
+          echo "::add-mask::${{ inputs.production-code }}"
+          fi
+
+      - name: Download SCC Product Version Verifier
+        uses: ./actions/download
+
+      - name: Verify Product Version
+        uses: ./actions/verify
+        with:
+          product-name: ${{ inputs.product-name }}
+          version: ${{ inputs.version }}
+          staging-code: ${{ inputs.use-staging && secrets.SCC_STAGING_CODE || '' }}
+          production-code: ${{ inputs.use-production && secrets.SCC_PRODUCTION_CODE || '' }}
+          fail-on-error: ${{ inputs.fail-on-error }}
+
+      - name: Verification Complete
+        shell: bash
+        run: |
+          echo "✅ Verification workflow completed"
+          echo "Check the step summary for detailed results"
