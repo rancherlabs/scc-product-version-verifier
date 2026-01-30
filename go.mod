@@ -1,4 +1,4 @@
-module github.com/rancher-sandbox/scc-product-version-verifier
+module github.com/rancherlabs/scc-product-version-verifier
 
 go 1.25.0
 

@@ -26,9 +26,9 @@ builds:
       - -extldflags
       - -static
       - -s
-      - -X github.com/rancher-sandbox/scc-product-version-verifier/cmd/version.Version={{.Version}}
-      - -X github.com/rancher-sandbox/scc-product-version-verifier/cmd/version.GitCommit={{.Commit}}
-      - -X github.com/rancher-sandbox/scc-product-version-verifier/cmd/version.Date={{.Date}}
+      - -X github.com/rancherlabs/scc-product-version-verifier/cmd/version.Version={{.Version}}
+      - -X github.com/rancherlabs/scc-product-version-verifier/cmd/version.GitCommit={{.Commit}}
+      - -X github.com/rancherlabs/scc-product-version-verifier/cmd/version.Date={{.Date}}
 
 
 

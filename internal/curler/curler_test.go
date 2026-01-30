@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/rancher-sandbox/scc-product-version-verifier/internal/curler"
+	"github.com/rancherlabs/scc-product-version-verifier/internal/curler"
 )
 
 func TestCurlVerify(t *testing.T) {

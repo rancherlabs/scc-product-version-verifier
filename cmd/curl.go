@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/rancher-sandbox/scc-product-version-verifier/internal/curler"
+	"github.com/rancherlabs/scc-product-version-verifier/internal/curler"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

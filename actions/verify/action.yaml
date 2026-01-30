@@ -1,0 +1,133 @@
+name: 'SCC Product Version Verify'
+description: 'Verifies a product version against SCC staging and production environments'
+branding:
+  icon: 'check-circle'
+  color: 'green'
+
+inputs:
+  version:
+    description: 'Version to verify (will be sanitized to remove v prefix and prerelease suffixes)'
+    required: true
+  staging-code:
+    description: 'SCC staging registration code (optional - if not provided, staging verification is skipped)'
+    required: false
+    default: ''
+  production-code:
+    description: 'SCC production registration code (optional - if not provided, production verification is skipped)'
+    required: false
+    default: ''
+  product-name:
+    description: 'Product name to verify'
+    required: true
+  fail-on-error:
+    description: 'Fail the workflow if verification fails'
+    required: false
+    default: 'false'
+
+outputs:
+  staging-result:
+    description: 'Staging verification result (passed/failed/skipped)'
+    value: ${{ steps.verify-staging.outputs.result }}
+  production-result:
+    description: 'Production verification result (passed/failed/skipped)'
+    value: ${{ steps.verify-production.outputs.result }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Mask sensitive registration codes
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.staging-code }}" ]; then
+          echo "::add-mask::${{ inputs.staging-code }}"
+        fi
+        if [ -n "${{ inputs.production-code }}" ]; then
+          echo "::add-mask::${{ inputs.production-code }}"
+        fi
+
+    - name: Check if verifier is installed
+      shell: bash
+      run: |
+        if ! command -v scc-product-version-verifier &> /dev/null; then
+          echo "Error: scc-product-version-verifier is not installed"
+          echo "Please use the rancherlabs/scc-product-version-verifier/actions/download action first"
+          exit 1
+        fi
+        echo "Verifier found at: $(which scc-product-version-verifier)"
+
+    - name: Sanitize version
+      id: sanitize
+      shell: bash
+      run: |
+        VERSION="${{ inputs.version }}"
+        # Remove 'v' prefix if present
+        VERSION="${VERSION#v}"
+        # Remove any prerelease suffixes (everything after and including -)
+        SANITIZED_VERSION="${VERSION%%-*}"
+        echo "sanitized_version=$SANITIZED_VERSION" >> $GITHUB_OUTPUT
+        echo "Original version: ${{ inputs.version }}"
+        echo "Sanitized version: $SANITIZED_VERSION"
+
+    - name: Verify with staging code
+      id: verify-staging
+      shell: bash
+      continue-on-error: ${{ inputs.fail-on-error == 'false' }}
+      env:
+        SCC_REGCODE: ${{ inputs.staging-code }}
+      run: |
+        if [ -z "$SCC_REGCODE" ]; then
+          echo "result=skipped" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        echo "## 🔍 SCC Staging Verification - ${{ inputs.product-name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Product:** ${{ inputs.product-name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** ${{ steps.sanitize.outputs.sanitized_version }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Environment:** Staging (-S flag)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "Running staging verification for ${{ inputs.product-name }}..."
+        if scc-product-version-verifier curl-verify ${{ inputs.product-name }} ${{ steps.sanitize.outputs.sanitized_version }} -S; then
+          echo "✅ **Result:** Verification PASSED" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "result=passed" >> $GITHUB_OUTPUT
+        else
+          echo "⚠️ **Result:** Verification FAILED or returned warning" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "result=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+    - name: Verify with production code
+      id: verify-production
+      shell: bash
+      continue-on-error: ${{ inputs.fail-on-error == 'false' }}
+      env:
+        SCC_REGCODE: ${{ inputs.production-code }}
+      run: |
+        if [ -z "$SCC_REGCODE" ]; then
+          echo "result=skipped" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        echo "---" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## 🔍 SCC Production Verification - ${{ inputs.product-name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Product:** ${{ inputs.product-name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** ${{ steps.sanitize.outputs.sanitized_version }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "Running production verification for ${{ inputs.product-name }}..."
+        if scc-product-version-verifier curl-verify ${{ inputs.product-name }} ${{ steps.sanitize.outputs.sanitized_version }}; then
+          echo "✅ **Result:** Verification PASSED" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "result=passed" >> $GITHUB_OUTPUT
+        else
+          echo "⚠️ **Result:** Verification FAILED or returned warning" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "result=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
