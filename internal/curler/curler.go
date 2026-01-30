@@ -37,15 +37,15 @@ func prepareClient() *http.Client {
 	}
 }
 
-func CurlVerify(name, version, arch, regCode string) error {
+func CurlVerify(name, version, arch, regCode string) ([]interface{}, error) {
 	return curlVerify(ProductQueryUrl, name, version, arch, regCode)
 }
 
-func CurlVerifyStaging(name, version, arch, regCode string) error {
+func CurlVerifyStaging(name, version, arch, regCode string) ([]interface{}, error) {
 	return curlVerify(ProductQueryUrlStaging, name, version, arch, regCode)
 }
 
-func curlVerify(apiURL, name, version, arch, regCode string) error {
+func curlVerify(apiURL, name, version, arch, regCode string) ([]interface{}, error) {
 	queryParams := fmt.Sprintf("?identifier=%s&version=%s&arch=%s", name, version, arch)
 	fullURLWithQuery := apiURL + queryParams
 	logrus.WithField("query_url", fullURLWithQuery).Info("Prepared URL to query SCC API for product info")
@@ -57,7 +57,7 @@ func curlVerify(apiURL, name, version, arch, regCode string) error {
 	req, err := http.NewRequest(http.MethodGet, fullURLWithQuery, nil)
 	if err != nil {
 		logrus.WithError(err).Error("❌ Error creating request")
-		return err
+		return nil, err
 	}
 
 	// 3. Force the identical headers as curl (CRITICAL STEP)
@@ -73,7 +73,7 @@ func curlVerify(apiURL, name, version, arch, regCode string) error {
 	resp, err := client.Do(req)
 	if err != nil {
 		logrus.WithError(err).Error("❌ Error executing request")
-		return err
+		return nil, err
 	}
 	// Always close the body to reuse the connection
 	defer resp.Body.Close()
@@ -104,12 +104,13 @@ func curlVerify(apiURL, name, version, arch, regCode string) error {
 	products := make([]interface{}, 0)
 	if err := json.Unmarshal(bodyBytes, &products); err != nil {
 		logrus.WithError(err).Error("❌ Error unmarshalling response")
-		return fmt.Errorf("failed to parse response: %w", err)
+
+		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
-	if len(products) == 0 {
-		return fmt.Errorf("product not found")
+	if products == nil {
+		return nil, fmt.Errorf("product not found")
 	}
 
-	return nil
+	return products, nil
 }

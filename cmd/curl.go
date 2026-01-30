@@ -39,14 +39,28 @@ var curlCmd = &cobra.Command{
 
 		logrus.WithField("reg_code", regCode).Trace("Authenticating to SCC API")
 
+		var productList []interface{}
+		var verifyErr error
 		if useStaging {
-			if err := curler.CurlVerifyStaging(productName, productVersion, productArch, regCode); err != nil {
-				log.Fatalf("❌ Error verifying product: %v", err)
+			if productList, verifyErr = curler.CurlVerifyStaging(productName, productVersion, productArch, regCode); verifyErr != nil {
+				log.Fatalf("❌ Error verifying product: %v", verifyErr)
 			}
 		} else {
-			if err := curler.CurlVerify(productName, productVersion, productArch, regCode); err != nil {
-				log.Fatalf("❌ Error verifying product: %v", err)
+			if productList, verifyErr = curler.CurlVerify(productName, productVersion, productArch, regCode); verifyErr != nil {
+				log.Fatalf("❌ Error verifying product: %v", verifyErr)
 			}
+		}
+
+		if len(productList) > 0 {
+			logrus.Info("--- Response Products ---")
+			for _, product := range productList {
+				logrus.WithFields(logrus.Fields{
+					"product_info": product,
+				}).Info("✅ Product found")
+			}
+			logrus.Info("-------------------------")
+		} else {
+			logrus.Warn("⚠️  No products found")
 		}
 	},
 }
