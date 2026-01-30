@@ -57,6 +57,7 @@ func curlVerify(apiURL, name, version, arch, regCode string) ([]interface{}, err
 	req, err := http.NewRequest(http.MethodGet, fullURLWithQuery, nil)
 	if err != nil {
 		logrus.WithError(err).Error("❌ Error creating request")
+
 		return nil, err
 	}
 
@@ -73,6 +74,7 @@ func curlVerify(apiURL, name, version, arch, regCode string) ([]interface{}, err
 	resp, err := client.Do(req)
 	if err != nil {
 		logrus.WithError(err).Error("❌ Error executing request")
+
 		return nil, err
 	}
 	// Always close the body to reuse the connection
@@ -108,7 +110,7 @@ func curlVerify(apiURL, name, version, arch, regCode string) ([]interface{}, err
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
-	if products == nil {
+	if products == nil || len(products) < 1 {
 		return nil, fmt.Errorf("product not found")
 	}
 

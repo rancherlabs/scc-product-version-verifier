@@ -36,6 +36,7 @@ func Verify(
 	request, buildErr := conn.BuildRequestRaw("GET", path, nil)
 	if buildErr != nil {
 		logrus.WithError(buildErr).Error("❌ Error building request")
+
 		return nil, buildErr
 	}
 
@@ -46,6 +47,7 @@ func Verify(
 	responseData, doErr := conn.Do(request)
 	if doErr != nil {
 		logrus.WithError(doErr).Error("❌ Error executing request")
+
 		return nil, doErr
 	}
 
@@ -55,11 +57,13 @@ func Verify(
 	err := json.Unmarshal(responseData, &products)
 	if err != nil {
 		logrus.WithError(err).Error("❌ Error unmarshalling response")
+
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
 	if len(products) == 0 {
 		logrus.Warn("⚠️  No products found matching criteria")
+
 		return nil, fmt.Errorf("product not found")
 	}
 

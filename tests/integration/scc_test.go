@@ -1,4 +1,4 @@
-package integration
+package integration_test
 
 import (
 	"os"
@@ -15,8 +15,9 @@ func Test_CurlerWithSCC(t *testing.T) {
 		t.Skip("Skipping integration test: SCC_REGCODE environment variable not set")
 	}
 
-	err := curler.CurlVerify("rancher-prime", "v2.13.1", "other", regCode)
+	products, err := curler.CurlVerify("rancher-prime", "v2.13.1", "other", regCode)
 	assert.Nil(t, err)
+	assert.NotNil(t, products)
 }
 
 func Test_VerifyWithSCC(t *testing.T) {

@@ -3,16 +3,19 @@ linters:
   default: fast
   disable:
     - wsl
+    - testpackage
   settings:
     depguard:
       rules:
         main:
           allow:
             - $gostd
+            - github.com/SUSE/connect-ng
             - github.com/rancherlabs/scc-product-version-verifier
             - github.com/sirupsen/logrus
             - github.com/spf13/cobra
             - github.com/spf13/viper
+            - github.com/stretchr/testify/assert
   exclusions:
     rules:
       - path: cmd

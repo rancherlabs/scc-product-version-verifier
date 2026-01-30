@@ -15,5 +15,6 @@ func Connection(options *connection.Options) *connection.ApiConnection {
 		defaultOpts := Options()
 		options = &defaultOpts
 	}
+
 	return connection.New(*options, connection.NoCredentials{})
 }
