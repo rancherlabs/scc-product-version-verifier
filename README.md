@@ -97,8 +97,8 @@ Verifies a product version against SCC staging and/or production environments.
 
 **Inputs:**
 - `version` (required): Version to verify (will be sanitized to remove `v` prefix and prerelease suffixes)
-- `staging-code` (required): SCC staging registration code
-- `production-code` (required): SCC production registration code
+- `staging-code` (optional): SCC staging registration code
+- `production-code` (optional): SCC production registration code
 - `product-name` (required): Product name to verify (case-sensitive)
 - `skip-staging` (optional, default: `false`): Skip staging verification
 - `skip-production` (optional, default: `false`): Skip production verification

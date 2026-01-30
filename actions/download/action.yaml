@@ -24,7 +24,7 @@ outputs:
     value: ${{ steps.release.outputs.tag }}
   bin-path:
     description: 'Path where binaries were extracted'
-    value: ${{ inputs.output-dir }}
+    value: ${{ steps.download.outputs.bin-path }}
   asset-name:
     description: 'Name of the downloaded asset'
     value: ${{ steps.download.outputs.asset-name }}
@@ -61,7 +61,23 @@ runs:
         REPO: "rancherlabs/scc-product-version-verifier"
         BINARY_NAME: "scc-product-version-verifier"
       run: |
-        ARCH="${{ runner.arch == 'X64' && 'x86_64' || 'arm64' }}"
+        ARCH="${{ runner.arch }}"
+        case "$ARCH" in
+          X64)
+            ARCH="x86_64"
+            ;;
+          ARM64)
+            ARCH="arm64"
+            ;;
+          X86|ARM)
+            echo "::error::Unsupported runner architecture: $ARCH. This action currently supports only X64 and ARM64 Linux runners."
+            exit 1
+            ;;
+          *)
+            echo "::error::Unknown runner architecture: $ARCH"
+            exit 1
+            ;;
+        esac
         TAG="${{ steps.release.outputs.tag }}"
         OUT="${{ inputs.output-dir }}"
         
@@ -75,16 +91,16 @@ runs:
           --clobber
   
         # 2. Extract and identify the archive name for cleanup
-        ARCHIVE=$(ls "$OUT" | grep ".tar.gz")
-        tar -xzf "$OUT/$ARCHIVE" -C "$OUT"
-        rm "$OUT/$ARCHIVE"
+        ARCHIVE=$(find "$OUT" -maxdepth 1 -type f -name "*.tar.gz" -print -quit)
+        tar -xzf "$ARCHIVE" -C "$OUT"
+        rm "$ARCHIVE"
         
         # 3. Ensure permissions
         chmod +x "$OUT/$BINARY_NAME"
         
         # 4. Set Outputs
         echo "asset-name=$BINARY_NAME" >> $GITHUB_OUTPUT
-        echo "bin-path=$OUT/$BINARY_NAME" >> $GITHUB_OUTPUT
+        echo "bin-path=$OUT" >> $GITHUB_OUTPUT
         
         # 5. Add to PATH for immediate use
         echo "$(realpath "$OUT")" >> $GITHUB_PATH

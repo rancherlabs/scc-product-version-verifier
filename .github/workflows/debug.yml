@@ -33,10 +33,10 @@ jobs:
         shell: bash
         run: |
           if [ -n "${{ inputs.staging-code }}" ]; then
-          echo "::add-mask::${{ inputs.staging-code }}"
+            echo "::add-mask::${{ inputs.staging-code }}"
           fi
           if [ -n "${{ inputs.production-code }}" ]; then
-          echo "::add-mask::${{ inputs.production-code }}"
+            echo "::add-mask::${{ inputs.production-code }}"
           fi
 
       - name: Download SCC Product Version Verifier
@@ -47,8 +47,8 @@ jobs:
         with:
           product-name: ${{ inputs.product-name }}
           version: ${{ inputs.version }}
-          staging-code: ${{ inputs.use-staging && secrets.SCC_STAGING_CODE || '' }}
-          production-code: ${{ inputs.use-production && secrets.SCC_PRODUCTION_CODE || '' }}
+          staging-code: ${{ inputs.staging-code }}
+          production-code: ${{ inputs.production-code }}
           fail-on-error: ${{ inputs.fail-on-error }}
 
       - name: Verification Complete
