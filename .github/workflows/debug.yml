@@ -1,4 +1,4 @@
-name: Manual SCC Product Version Verification
+name: Manually verify the GHA Actions (verification to SCC not expected to work)
 
 on:
   workflow_dispatch:
@@ -11,14 +11,6 @@ on:
         description: 'Version to verify (e.g., v1.2.3 or 1.2.3-rc1)'
         required: true
         type: string
-      staging-code:
-        description: 'SCC staging registration code (optional - if not provided, staging verification is skipped)'
-        required: false
-        default: ''
-      production-code:
-        description: 'SCC production registration code (optional - if not provided, production verification is skipped)'
-        required: false
-        default: ''
       fail-on-error:
         description: 'Fail the workflow if verification fails'
         required: false
@@ -29,16 +21,6 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Mask sensitive registration codes
-        shell: bash
-        run: |
-          if [ -n "${{ inputs.staging-code }}" ]; then
-            echo "::add-mask::${{ inputs.staging-code }}"
-          fi
-          if [ -n "${{ inputs.production-code }}" ]; then
-            echo "::add-mask::${{ inputs.production-code }}"
-          fi
-
       - name: Checkout repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
@@ -52,8 +34,8 @@ jobs:
         with:
           product-name: ${{ inputs.product-name }}
           version: ${{ inputs.version }}
-          staging-code: ${{ inputs.staging-code }}
-          production-code: ${{ inputs.production-code }}
+          staging-code: "FAKE_STAGING_CODE"
+          production-code: "FAKE_PROD_CODE"
           fail-on-error: ${{ inputs.fail-on-error }}
 
       - name: Verification Complete
