@@ -68,10 +68,5 @@ var verifyCmd = &cobra.Command{
 }
 
 func init() {
-	verifyCmd.Flags().BoolP("staging", "S", false, "Use the SCC Staging API instead of Production")
-	viper.BindPFlag("staging", verifyCmd.Flags().Lookup("staging"))
-	verifyCmd.Flags().StringP("regcode", "R", "", "The SCC Registration Code used to auth for the API call. Can also be set with the SCC_REGCODE environment variable.")
-	viper.BindPFlag("regcode", verifyCmd.Flags().Lookup("regcode"))
-
 	rootCmd.AddCommand(verifyCmd)
 }

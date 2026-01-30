@@ -43,6 +43,12 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.scc-product-version-verifier.yaml)")
 
+	// Add shared flags for SCC API access
+	rootCmd.PersistentFlags().BoolP("staging", "S", false, "Use the SCC Staging API instead of Production")
+	viper.BindPFlag("staging", rootCmd.PersistentFlags().Lookup("staging"))
+	rootCmd.PersistentFlags().StringP("regcode", "R", "", "The SCC Registration Code used to auth for the API call. Can also be set with the SCC_REGCODE environment variable.")
+	viper.BindPFlag("regcode", rootCmd.PersistentFlags().Lookup("regcode"))
+
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
