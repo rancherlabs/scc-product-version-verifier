@@ -10,11 +10,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-const (
-	minRequiredFlags = 2
-	optionalFlags    = 3
-)
-
 // curlCmd represents the curl command.
 var curlCmd = &cobra.Command{
 	Use:   "curl-verify [product name] [product version] [product arch : optional]",
@@ -46,11 +41,11 @@ var curlCmd = &cobra.Command{
 
 		if useStaging {
 			if err := curler.CurlVerifyStaging(productName, productVersion, productArch, regCode); err != nil {
-				log.Fatalf("Error verifying product: %v", err)
+				log.Fatalf("❌ Error verifying product: %v", err)
 			}
 		} else {
 			if err := curler.CurlVerify(productName, productVersion, productArch, regCode); err != nil {
-				log.Fatalf("Error verifying product: %v", err)
+				log.Fatalf("❌ Error verifying product: %v", err)
 			}
 		}
 	},

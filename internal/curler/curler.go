@@ -56,8 +56,7 @@ func curlVerify(apiURL, name, version, arch, regCode string) error {
 	// 2. Create the Request
 	req, err := http.NewRequest(http.MethodGet, fullURLWithQuery, nil)
 	if err != nil {
-		fmt.Printf("Error creating request: %v\n", err)
-
+		logrus.WithError(err).Error("❌ Error creating request")
 		return err
 	}
 
@@ -73,8 +72,7 @@ func curlVerify(apiURL, name, version, arch, regCode string) error {
 	// 4. Execute the Request
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("Error executing request: %v\n", err)
-
+		logrus.WithError(err).Error("❌ Error executing request")
 		return err
 	}
 	// Always close the body to reuse the connection
@@ -83,26 +81,31 @@ func curlVerify(apiURL, name, version, arch, regCode string) error {
 	// 5. Read the Body (regardless of status code)
 	bodyBytes, readErr := io.ReadAll(resp.Body)
 	if readErr != nil {
-		fmt.Printf("Error reading response body: %v\n", readErr)
-		// We still continue to print status even if body read failed
+		logrus.WithError(readErr).Error("❌ Error reading response body")
+		// We still continue to log status even if body read failed
 	}
 
-	// 6. Print Results
-	fmt.Printf("✅ Request URL: %s\n", fullURLWithQuery)
-	fmt.Printf("✅ Status Code: %d (%s)\n", resp.StatusCode, resp.Status)
-	fmt.Printf("✅ Content-Length Header: %s\n", resp.Header.Get("Content-Length"))
+	// 6. Log Results
+	logrus.WithFields(logrus.Fields{
+		"url":            fullURLWithQuery,
+		"status_code":    resp.StatusCode,
+		"status":         resp.Status,
+		"content_length": resp.Header.Get("Content-Length"),
+	}).Info("✅ Request completed successfully")
 
-	fmt.Println("--- Response Body ---")
+	logrus.Info("--- Response Body ---")
 	if len(bodyBytes) > 0 {
-		fmt.Println(string(bodyBytes))
+		logrus.Info(string(bodyBytes))
 	} else {
-		fmt.Println("Body is empty (zero length).")
-		fmt.Println("Go's Response.Body was likely http.noBody or read returned EOF immediately.")
+		logrus.Info("Body is empty (zero length)")
 	}
-	fmt.Println("---------------------")
+	logrus.Info("---------------------")
 
-	products := make([]interface{}, 1)
-	json.Unmarshal(bodyBytes, &products)
+	products := make([]interface{}, 0)
+	if err := json.Unmarshal(bodyBytes, &products); err != nil {
+		logrus.WithError(err).Error("❌ Error unmarshalling response")
+		return fmt.Errorf("failed to parse response: %w", err)
+	}
 
 	if len(products) == 0 {
 		return fmt.Errorf("product not found")
