@@ -35,6 +35,16 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Mask sensitive registration codes
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.staging-code }}" ]; then
+          echo "::add-mask::${{ inputs.staging-code }}"
+        fi
+        if [ -n "${{ inputs.production-code }}" ]; then
+          echo "::add-mask::${{ inputs.production-code }}"
+        fi
+
     - name: Check if verifier is installed
       shell: bash
       run: |
