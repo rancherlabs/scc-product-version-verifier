@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/rancher-sandbox/scc-product-version-verifier/cmd/version"
+	"github.com/rancherlabs/scc-product-version-verifier/cmd/version"
 	"github.com/spf13/cobra"
 )
 

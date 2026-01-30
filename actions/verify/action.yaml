@@ -50,7 +50,7 @@ runs:
       run: |
         if ! command -v scc-product-version-verifier &> /dev/null; then
           echo "Error: scc-product-version-verifier is not installed"
-          echo "Please use the rancher-sandbox/scc-product-version-verifier/actions/download action first"
+          echo "Please use the rancherlabs/scc-product-version-verifier/actions/download action first"
           exit 1
         fi
         echo "Verifier found at: $(which scc-product-version-verifier)"
