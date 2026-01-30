@@ -100,8 +100,6 @@ Verifies a product version against SCC staging and/or production environments.
 - `staging-code` (optional): SCC staging registration code
 - `production-code` (optional): SCC production registration code
 - `product-name` (required): Product name to verify (case-sensitive)
-- `skip-staging` (optional, default: `false`): Skip staging verification
-- `skip-production` (optional, default: `false`): Skip production verification
 - `fail-on-error` (optional, default: `false`): Fail the workflow if verification fails
 
 **Outputs:**
