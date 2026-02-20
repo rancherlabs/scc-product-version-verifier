@@ -99,8 +99,8 @@ runs:
         chmod +x "$OUT/$BINARY_NAME"
         
         # 4. Set Outputs
-        echo "asset-name=$BINARY_NAME" >> $GITHUB_OUTPUT
-        echo "bin-path=$OUT" >> $GITHUB_OUTPUT
+        echo "asset-name=$BINARY_NAME" >> "$GITHUB_OUTPUT"
+        echo "bin-path=$OUT" >> "$GITHUB_OUTPUT"
         
         # 5. Add to PATH for immediate use
         echo "$(realpath "$OUT")" >> $GITHUB_PATH
