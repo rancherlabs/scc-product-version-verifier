@@ -6,7 +6,7 @@ branding:
 
 inputs:
   version:
-    description: 'Version to verify (will be sanitized to remove v prefix and prerelease suffixes)'
+    description: 'Version to verify (will be sanitized to remove refs/tags/ prefix, v prefix, and prerelease suffixes - github.ref is accepted)'
     required: true
   staging-code:
     description: 'SCC staging registration code (optional - if not provided, staging verification is skipped)'
@@ -60,6 +60,9 @@ runs:
       shell: bash
       run: |
         VERSION="${{ inputs.version }}"
+        # Strip refs/tags/ or refs/heads/ prefix (e.g. when github.ref is passed directly)
+        VERSION="${VERSION#refs/tags/}"
+        VERSION="${VERSION#refs/heads/}"
         # Remove 'v' prefix if present
         VERSION="${VERSION#v}"
         # Remove any prerelease suffixes (everything after and including -)
