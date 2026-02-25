@@ -35,6 +35,23 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Setup output helper
+      shell: bash
+      run: |
+        cat > /tmp/scc_output.sh << 'EOF'
+        #!/bin/bash
+        
+        # Output to both stdout and step summary (if available)
+        output_line() {
+          local line="$1"
+          echo "$line"
+          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -w "$GITHUB_STEP_SUMMARY" ]; then
+            echo "$line" >> "$GITHUB_STEP_SUMMARY"
+          fi
+        }
+        EOF
+        chmod +x /tmp/scc_output.sh
+
     - name: Mask sensitive registration codes
       shell: bash
       run: |
@@ -77,27 +94,29 @@ runs:
       env:
         SCC_REGCODE: ${{ inputs.staging-code }}
       run: |
+        source /tmp/scc_output.sh
+        
         if [ -z "$SCC_REGCODE" ]; then
           echo "result=skipped" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
-        echo "## 🔍 SCC Staging Verification - ${{ inputs.product-name }}" >> "$GITHUB_STEP_SUMMARY"
-        echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "**Product:** ${{ inputs.product-name }}" >> "$GITHUB_STEP_SUMMARY"
-        echo "**Version:** ${{ steps.sanitize.outputs.sanitized_version }}" >> "$GITHUB_STEP_SUMMARY"
-        echo "**Environment:** Staging (-S flag)" >> "$GITHUB_STEP_SUMMARY"
-        echo "" >> "$GITHUB_STEP_SUMMARY"
+        output_line "## 🔍 SCC Staging Verification - ${{ inputs.product-name }}"
+        output_line ""
+        output_line "**Product:** ${{ inputs.product-name }}"
+        output_line "**Version:** ${{ steps.sanitize.outputs.sanitized_version }}"
+        output_line "**Environment:** Staging (-S flag)"
+        output_line ""
 
         echo "Running staging verification for ${{ inputs.product-name }}..."
         if scc-product-version-verifier verify ${{ inputs.product-name }} ${{ steps.sanitize.outputs.sanitized_version }} -S; then
           RESULT="passed"
-          echo "✅ **Result:** Verification PASSED" >> "$GITHUB_STEP_SUMMARY"
+          output_line "✅ **Result:** Verification PASSED"
         else
           RESULT="failed"
-          echo "⚠️ **Result:** Verification FAILED or returned warning" >> "$GITHUB_STEP_SUMMARY"
+          output_line "⚠️ **Result:** Verification FAILED or returned warning"
         fi
-        echo "" >> "$GITHUB_STEP_SUMMARY"
+        output_line ""
 
         echo "result=$RESULT" >> "$GITHUB_OUTPUT"
         if [ "$RESULT" = "failed" ] && [ "${{ inputs.fail-on-error }}" = "true" ]; then
@@ -110,29 +129,31 @@ runs:
       env:
         SCC_REGCODE: ${{ inputs.production-code }}
       run: |
+        source /tmp/scc_output.sh
+        
         if [ -z "$SCC_REGCODE" ]; then
           echo "result=skipped" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
-        echo "---" >> "$GITHUB_STEP_SUMMARY"
-        echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "## 🔍 SCC Production Verification - ${{ inputs.product-name }}" >> "$GITHUB_STEP_SUMMARY"
-        echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "**Product:** ${{ inputs.product-name }}" >> "$GITHUB_STEP_SUMMARY"
-        echo "**Version:** ${{ steps.sanitize.outputs.sanitized_version }}" >> "$GITHUB_STEP_SUMMARY"
-        echo "**Environment:** Production" >> "$GITHUB_STEP_SUMMARY"
-        echo "" >> "$GITHUB_STEP_SUMMARY"
+        output_line "---"
+        output_line ""
+        output_line "## 🔍 SCC Production Verification - ${{ inputs.product-name }}"
+        output_line ""
+        output_line "**Product:** ${{ inputs.product-name }}"
+        output_line "**Version:** ${{ steps.sanitize.outputs.sanitized_version }}"
+        output_line "**Environment:** Production"
+        output_line ""
 
         echo "Running production verification for ${{ inputs.product-name }}..."
         if scc-product-version-verifier verify ${{ inputs.product-name }} ${{ steps.sanitize.outputs.sanitized_version }}; then
           RESULT="passed"
-          echo "✅ **Result:** Verification PASSED" >> "$GITHUB_STEP_SUMMARY"
+          output_line "✅ **Result:** Verification PASSED"
         else
           RESULT="failed"
-          echo "⚠️ **Result:** Verification FAILED or returned warning" >> "$GITHUB_STEP_SUMMARY"
+          output_line "⚠️ **Result:** Verification FAILED or returned warning"
         fi
-        echo "" >> "$GITHUB_STEP_SUMMARY"
+        output_line ""
 
         echo "result=$RESULT" >> "$GITHUB_OUTPUT"
         if [ "$RESULT" = "failed" ] && [ "${{ inputs.fail-on-error }}" = "true" ]; then
